@@ -13,8 +13,17 @@ public class SteerForSeparation : SteerForNeighbors
 		// to normalize, divided another time to get 1/d falloff)
 		Vector3 offset = other.Position - Vehicle.Position;
 		float distanceSquared = Vector3.Dot (offset, offset);
-		Vector3 steering = (offset / -distanceSquared);	
-		return steering;
+		if ( distanceSquared > 0 )
+		{
+			Vector3 steering = (offset / -distanceSquared);	
+			return steering;
+		}
+		else
+		{
+			// randomly offset this vehicle a direction to propel the vehicle
+			Debug.Log("Zero offset detected");
+			return Vector3.one;
+		}
 	}
 	#endregion
 }

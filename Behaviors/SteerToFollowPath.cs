@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnitySteer;
+using System;
 
 public enum FollowDirection: int {
 	Forward = +1,
@@ -15,7 +16,8 @@ public class SteerToFollowPath : Steering
 	
 	#region Private fields
 	FollowDirection _direction = FollowDirection.Forward;
-	float _predictionTime = 2f;
+	public float _predictionTime = 2f;
+	public float _minimalSpeed = 10f;
 	Pathway _path;
 	#endregion
 	
@@ -71,16 +73,23 @@ public class SteerToFollowPath : Steering
 			return Vector3.zero;
 		
 		// our goal will be offset from our path distance by this amount
-		float pathDistanceOffset = (int)_direction * _predictionTime * Vehicle.Speed;
+		float speed = Vehicle.Speed < _minimalSpeed ? _minimalSpeed : Vehicle.Speed;		
+		float pathDistanceOffset = (int)_direction * _predictionTime * speed;
 		
 		// predict our future position
 		Vector3 futurePosition = Vehicle.PredictFuturePosition(_predictionTime);
+		Debug.DrawLine(Vehicle.Position, futurePosition, Color.yellow);
 		
 		// measure distance along path of our current and predicted positions
 		float nowPathDistance = _path.mapPointToPathDistance (Vehicle.Position);
+		
+		// THE CODE BELOW MAY CAUSE YOUR ACTOR BLOCKED IN A PATH NODE ALONG THE PATH.
+		// SO DO NOT RE-ENABLE THE CODE BELOW IF YOU KNOW WHAT'S GOING ON HERE.
+		/*
 		float futurePathDistance = _path.mapPointToPathDistance (futurePosition);
 		
 		// are we facing in the correction direction?
+		
 		bool rightway = ((pathDistanceOffset > 0) ? (nowPathDistance < futurePathDistance) : (nowPathDistance > futurePathDistance));
 		
 		// find the point on the path nearest the predicted future position
@@ -89,20 +98,27 @@ public class SteerToFollowPath : Steering
 		// XXX bool (onPath,tangent (ignored), withinPath)
 		mapReturnStruct tStruct = new mapReturnStruct ();
 		_path.mapPointToPath (futurePosition, ref tStruct);
-		
+		*/
 		
 		// no steering is required if (a) our future position is inside
 		// the path tube and (b) we are facing in the correct direction
+		/*
 		if ((tStruct.outside < 0) && rightway) {
 			// all is well, return zero steering
+			Debug.Log("Rightaway!");
 			return Vector3.zero;
-		} else {
+		} 
+		else 
+		*/
+		{
 			// otherwise we need to steer towards a target point obtained
 			// by adding pathDistanceOffset to our current path position
 			
 			float targetPathDistance = nowPathDistance + pathDistanceOffset;
+			
 			Vector3 target = _path.mapPathDistanceToPoint (targetPathDistance);
 			
+			Debug.DrawLine(Vehicle.Position, target, Color.cyan);
 			// return steering to seek target on path
 			return Vehicle.GetSeekVector(target);
 		}

@@ -12,8 +12,7 @@ public class SteerForTarget : Steering {
 	{
 		if (Target == null)
 		{
-			Destroy(this);
-			throw new System.Exception("SteerForTarget need a target transform. Dying.");
+			Debug.Log("No target at awake.");
 		}
 	}
 
@@ -25,6 +24,10 @@ public class SteerForTarget : Steering {
 	/// </returns>
 	protected override Vector3 CalculateForce()
 	{
+		if (Target == null)
+		{
+			return Vector3.zero;
+		}
 		return Vehicle.GetSeekVector(Target.position);
 	}
 }

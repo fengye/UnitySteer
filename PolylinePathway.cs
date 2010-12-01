@@ -64,19 +64,19 @@ namespace UnitySteer
         Vector3[] normals;
         float totalPathLength;
 
-        PolylinePathway () {
+        public PolylinePathway () {
             
         }
 
         // construct a PolylinePathway given the number of points (vertices),
         // an array of points, and a path radius.
-        PolylinePathway (Vector3[] _points, float _radius, bool _cyclic)
+        public PolylinePathway (Vector3[] _points, float _radius, bool _cyclic)
         {
             initialize (_points, _radius, _cyclic);
         }
 
         // utility for constructors in derived classes
-        void initialize (Vector3[] _points, float _radius, bool _cyclic)
+        public void initialize (Vector3[] _points, float _radius, bool _cyclic)
         {
             // set data members, allocate arrays
             radius = _radius;
@@ -183,7 +183,10 @@ namespace UnitySteer
             float remaining = pathDistance;
             if (isCyclic)
             {
-                remaining = (float)System.Math.IEEERemainder(pathDistance, totalPathLength);
+            	// Looks like System.Math.IEEERemainder doesn't give correct result, at least in Unity 3.
+            	// so I just use old school %, which works.
+                //remaining = (float)System.Math.IEEERemainder(pathDistance, totalPathLength);
+                remaining = pathDistance % totalPathLength;
             }
             else
             {

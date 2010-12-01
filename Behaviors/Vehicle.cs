@@ -93,6 +93,13 @@ public class Vehicle: MonoBehaviour
 	/// Cached transform for this behaviour
 	/// </summary>
 	Transform _transform;
+	
+	/// <summary>
+	/// Direction of current velocity. This is no longer same as transform.forward
+	/// </summary>
+	[SerializeField]
+	Vector3 _velocityDir;
+	
 	#endregion
 
 
@@ -287,7 +294,7 @@ public class Vehicle: MonoBehaviour
 	{
 		get
 		{
-			return _transform.forward * _speed;
+			return _velocityDir * _speed;
 		}
 	}
 	#endregion
@@ -312,7 +319,12 @@ public class Vehicle: MonoBehaviour
 			var newForward = newVelocity / Speed;
 			newForward.y = IsPlanar ? _transform.forward.y : newForward.y;
 			
-			_transform.forward = newForward;
+			_velocityDir = newForward;
+			
+			// TODO: need customization parameter here to control the interpolation speed.
+			Vector3 dirDiff = _velocityDir - _transform.forward;
+			_transform.forward += dirDiff * Time.fixedDeltaTime;
+			_transform.forward.Normalize();
 		}
 	}
 	
@@ -405,7 +417,7 @@ public class Vehicle: MonoBehaviour
 				{
 					// otherwise, test angular offset from forward axis
 					Vector3 unitOffset = offset / (float) Mathf.Sqrt (distanceSquared);
-					float forwardness = Vector3.Dot(_transform.forward, unitOffset);
+					float forwardness = Vector3.Dot(_velocityDir, unitOffset);
 					return forwardness > cosMaxAngle;
 				}
 			}
@@ -461,7 +473,7 @@ public class Vehicle: MonoBehaviour
 	public Vector3 GetTargetSpeedVector(float targetSpeed) {
 		 float mf = MaxForce;
 		 float speedError = targetSpeed - Speed;
-		 return _transform.forward * Mathf.Clamp (speedError, -mf, +mf);		
+		 return _velocityDir * Mathf.Clamp(speedError, -mf, +mf);
 	}
 	
 	
@@ -486,6 +498,7 @@ public class Vehicle: MonoBehaviour
 	{
 		_transform.up = Vector3.up;
 		_transform.forward = Vector3.forward;
+		_velocityDir = Vector3.forward;
 	}
 	
 	
@@ -552,8 +565,9 @@ public class Vehicle: MonoBehaviour
 												  ref Vector3 ourPosition, 
 												  ref Vector3 hisPosition)
 	{
-		Vector3	   myTravel = _transform.forward 	   *	   Speed * time;
-		Vector3 otherTravel = other._transform.forward * other.Speed * time;
+		
+		Vector3	   myTravel = _velocityDir 	   *	   Speed * time;
+		Vector3 otherTravel = other._velocityDir * other.Speed * time;
 
 		ourPosition = Position 		 + myTravel;
 		hisPosition = other.Position + otherTravel;
@@ -575,4 +589,5 @@ public class Vehicle: MonoBehaviour
 		}
 	}
 	#endregion
+	
 }
